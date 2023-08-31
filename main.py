@@ -5,16 +5,13 @@ from datetime import datetime
 from pymsgbox import *
 import time, customtkinter, fitz, os
 
-# узнаём день, месяц, год для дальнейшей вставки в приказ
 currentDay = str(datetime.now().day)
 currentMonth = int(datetime.now().month)
 currentYear = str(datetime.now().year)
 
-# представляем месяц в виде слова
 months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря']
 currentMonth = str(months[currentMonth-1])
 
-# объявляем необъявленные переменные
 orderType = -1
 workPosition = ''
 workRank = ''
@@ -35,30 +32,17 @@ blacklistDuration1 = ''
 blacklistDuration2 = ''
 
 def PDFgenerator():
-    # объявляем объект FPDF
-    # настраиваемые параметры:
-    # лэйаут (портретный или альбомный режим) ('P', 'L')
-    # единицы измерения ('mm', 'cm', 'in')
-    # формат листа ('A3', 'A4' (по дефолту), 'A5', 'Letter', 'Legal', (100,150)) (последний - кастомный размер листа)
     pdf = FPDF('P', 'mm', 'A4')
-
-    # создаём страницу
     pdf.add_page()
-
-    # устанавливаем условия для перехода на следующую страницу
     pdf.set_auto_page_break(auto=True, margin=10)
-
-    # делаем заголовок
-    # логотип
-    pdf.image('logo.png', 'C', 10, 30)
-    # добавляем шрифты
+    
     pdf.add_font('Times New Roman', '', r'C:\Windows\Fonts\times.ttf', uni=True)
     pdf.add_font('Times New Roman', 'B', r'C:\Windows\Fonts\timesbd.ttf', uni=True)
     pdf.add_font('Times New Roman', 'I', r'C:\Windows\Fonts\timesi.ttf', uni=True)
     pdf.add_font('Times New Roman', 'BI', r'C:\Windows\Fonts\timesbi.ttf', uni=True)
-    # выбираем шрифт
     pdf.set_font('Times New Roman', '', 14)
-    # клетки и всё остальное, разберусь сам
+
+    pdf.image('logo.png', 'C', 10, 30)
     pdf.cell(0, 35, '', ln=True)
     pdf.cell(0, 7, 'ГЛАВНОЕ УПРАВЛЕНИЕ ПО ОБЕСПЕЧЕНИЮ', ln=True, align='C')
     pdf.cell(0, 7, 'БЕЗОПАСНОСТИ ДОРОЖНОГО ДВИЖЕНИЯ', ln=True, align='C')
@@ -73,7 +57,6 @@ def PDFgenerator():
     pdf.set_font('Times New Roman', 'U', 14)
     pdf.cell(0, 14, '№ '+ orderNumber, ln=True, align='R')
 
-    # выбираем шрифт
     pdf.set_font('Times New Roman', 'BI', 12)
 
     global orderType
@@ -171,27 +154,24 @@ def PDFgenerator():
     except:
         pass
 
-    # генерация конечного .pdf файла
     pdf.output('output.pdf')
 
     file_path = "output.pdf"
-    doc = fitz.open(file_path)  # открываем .pdf файл
+    doc = fitz.open(file_path)
     for i, page in enumerate(doc):
-        pix = page.get_pixmap()  # конвертим .pdf в изображение .png
+        pix = page.get_pixmap()
         pix.save(f"page_{i+1}.png")
 
     msg = alert(text='Приказ сохранён как "output.pdf" и "page_1.png".', title="Операция выполнена", button='OK')
     if msg == "OK":
         root.destroy()
 
-# представляем выбранный тип приказа в виде числа
 def selectedOrderType(choice):
     global orderType
     int(orderType)
     listOfOrders = ['Выберите тип приказа', 'Кастом', 'Выдача предупреждения', 'Выдача выговора', 'Написание объяснительной', 'Увольнение сотрудника', 'Смена паспортных данных', 'Принятие человека', 'Повышение', 'Перевод в другой отдел', 'Отработка взыскания', 'Выпуск из ЦПП', 'Построение', 'Премирование сотрудника']
     orderType = listOfOrders.index(choice) - 1
 
-# тут записанные пользователем значения записываются в переменные, после чего открывается окно настройки приказа
 def continuePressed():
     if orderType >= 0:
         global workPosition, workRank, nameSurname, orderNumber, orderReason, orderFreetext, enteredOrderReason, enteredOrderFreetext, punishmentReason, enteredPunishmentReason, nickname, oldNickname, enteredNickname, enteredOldNickname, enteredPreds, enteredVygs, punishmentPreds, punishmentVygs, enteredERank, enteredEPosition, enteredUvalReason, blacklistSelection, enteredBlack1, enteredBlack2
@@ -266,23 +246,18 @@ def continuePressed():
     generateButton = customtkinter.CTkButton(master=frame, text='Сгенерировать', command=PDFgenerator)
     generateButton.pack(pady=12, padx=10)
 
-# задаём цветовую схему окна приложения
 customtkinter.set_appearance_mode('dark')
 customtkinter.set_default_color_theme('dark-blue')
 
-# создаём окно и задаём размеры
 root = customtkinter.CTk()
 root.geometry('500x525')
 
-# задаём рамку для дальнейшего размещения объектов
 frame = customtkinter.CTkFrame(master=root)
 frame.pack(pady=20, padx=60, fill='both', expand='true')
 
-# помещаем заголовок в окне
 label = customtkinter.CTkLabel(master=frame, text='Генератор приказов ГУОБДД', font=('Roboto', 24))
 label.pack(pady=12, padx=10)
 
-# создаём поля для ввода должности, звания, фамилии и инициалов составителя приказа, номера и типа приказа, а также кнопку "Запомнить меня"
 enteredPosition = customtkinter.CTkEntry(master=frame, placeholder_text='Ваша должность')
 enteredPosition.pack(pady=12, padx=10)
 
@@ -307,5 +282,4 @@ usePreviousDataCheckbox.pack(pady=12, padx=10)
 continueButton = customtkinter.CTkButton(master=frame, text='Продолжить', command=continuePressed)
 continueButton.pack(pady=12, padx=10)
 
-# показываем пользователю окно
 root.mainloop()
