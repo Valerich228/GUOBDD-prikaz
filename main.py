@@ -1,4 +1,4 @@
-from tkinter import CURRENT, Toplevel, END, CURRENT
+from tkinter import Toplevel, END, CURRENT
 from unicodedata import *
 from fpdf import FPDF
 from datetime import datetime
