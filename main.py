@@ -1,4 +1,4 @@
-from tkinter import Toplevel
+from tkinter import CURRENT, Toplevel, END, CURRENT
 from unicodedata import *
 from fpdf import FPDF
 from datetime import datetime
@@ -6,14 +6,12 @@ from pymsgbox import *
 from tkcalendar import *
 import customtkinter, fitz
 
-currentDay = str(datetime.now().day)
 currentMonth = int(datetime.now().month)
-currentYear = str(datetime.now().year)
 
 months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря']
 currentMonth = str(months[currentMonth-1])
 
-orderList = ['Самостоятельное написание', 'Выдача предупреждения', 'Выдача выговора', 'Написание объяснительной', 'Увольнение сотрудника', 'Смена паспортных данных', 'Принятие человека', 'Повышение', 'Перевод в другой отдел', 'Отработка взыскания', 'Построение', 'Назначение/снятие СС/РС', 'Награждение медалью']
+orderList = ['Самостоятельное написание', 'Выдача предупреждения', 'Выдача выговора', 'Написание объяснительной', 'Увольнение сотрудника', 'Смена паспортных данных', 'Принятие человека в МС', 'Повышение/понижение МС', 'Перевод в другой отдел МС', 'Отработка взыскания', 'Построение', 'Назначение/снятие СС/РС', 'Награждение медалью']
 blacklist = ''
 
 def PDFgenerator():
@@ -38,11 +36,11 @@ def PDFgenerator():
     pdf.set_font('Times New Roman', 'B', 16)
     pdf.cell(0, 14, 'П Р И К А З', ln=True, align='C')
     pdf.set_font('Times New Roman', 'U', 14)
-    pdf.cell(0, 14, '«'+ currentDay +'»  '+ currentMonth +'  '+ currentYear +' г.', ln=True)
+    pdf.cell(0, 14, '«'+ str(datetime.now().day) +'»  '+ currentMonth +'  '+ str(datetime.now().year) +' г.', ln=True)
     pdf.set_font('Times New Roman', '', 14)
     pdf.cell(0, 7, 'г. Мирный', ln=True, align='C')
     pdf.set_font('Times New Roman', 'U', 14)
-    pdf.cell(0, 14, '№ '+ orderNumber, ln=True, align='R')
+    pdf.cell(0, 14, '№ '+ selectedNumber.get(), ln=True, align='R')
 
     pdf.set_font('Times New Roman', 'BI', 12)
 
@@ -71,7 +69,10 @@ def PDFgenerator():
         pdf.set_font('Times New Roman', 'I', 12)
         pdf.cell(0, 6, 'В соответствии с действующими правилами и уставной документацией.', ln=True, align='L')
     if orderTypeSelection.get() == orderList[7]:
-        pdf.cell(0, 6, '«О повышении сотрудника в звании»', ln=True, align='L')
+        if enteredPunishmentType.get() == 'Повысить':
+            pdf.cell(0, 6, '«О повышении сотрудника в звании»', ln=True, align='L')
+        if enteredPunishmentType.get() == 'Понизить':
+            pdf.cell(0, 6, '«О понижении сотрудника в звании»', ln=True, align='L')
         pdf.set_font('Times New Roman', 'I', 12)
         pdf.cell(0, 6, 'В соответствии с действующими правилами и уставной документацией.', ln=True, align='L')
     if orderTypeSelection.get() == orderList[8]:
@@ -89,7 +90,9 @@ def PDFgenerator():
     if orderTypeSelection.get() == orderList[11]:
         if enteredPunishmentType.get() == 'Назначить':
             pdf.cell(0, 6, '«О повышении сотрудника в звании и должности»', ln=True, align='L')
-        else:
+        if enteredPunishmentType.get() == 'Трудоустроить':
+            pdf.cell(0, 6, '«О принятии человека в организацию по факту прохождения собеседования»', ln=True, align='L')
+        if enteredPunishmentType.get() == 'Снять':
             pdf.cell(0, 6, '«О понижении сотрудника в звании и должности»', ln=True, align='L')
         pdf.set_font('Times New Roman', 'I', 12)
         pdf.cell(0, 6, 'В соответствии с действующими правилами и уставной документацией.', ln=True, align='L')
@@ -136,17 +139,32 @@ def PDFgenerator():
     if orderTypeSelection.get() == orderList[6]:
         pdf.multi_cell(0, 7, '      '+'1. Принять человека '+ enteredNickname.get() +' в организацию.', ln=True, align='L')
         pdf.multi_cell(0, 7, '      '+'1.1. Ваш отдел: '+ enteredDepartament.get(), ln=True, align='L')
-        pdf.multi_cell(0, 7, '      '+'1.2. Ваша должность: '+ enteredEPosition.get(), ln=True, align='L')
+        if enteredDepartament.get() == 'ЦПП':
+            pdf.multi_cell(0, 7, '      '+'1.2. Ваша должность: Курсант ЦПП', ln=True, align='L')
+        if enteredDepartament.get() == '2-я ОР ДПС':
+            pdf.multi_cell(0, 7, '      '+'1.2. Ваша должность: Инспектор 2-й ОР ДПС', ln=True, align='L')
+        if enteredDepartament.get() == '1-я ОСР ДПС':
+            pdf.multi_cell(0, 7, '      '+'1.2. Ваша должность: Инспектор 1-й ОСР ДПС', ln=True, align='L')
         pdf.multi_cell(0, 7, '      '+'1.3. Ваше звание: '+ enteredERank.get() +' инспекции', ln=True, align='L')
         pdf.multi_cell(0, 7, '      '+'2. Контроль за исполнением настоящего приказа оставляю за собой.', ln=True, align='L')
     if orderTypeSelection.get() == orderList[7]:
-        pdf.multi_cell(0, 7, '      '+'1. Повысить сотрудника '+ enteredNickname.get() +' в звании, в связи с отставленным отчетом на гос. портале.', ln=True, align='L')
+        if enteredPunishmentType.get() == 'Повысить':
+            pdf.multi_cell(0, 7, '      '+'1. Повысить сотрудника '+ enteredNickname.get() +' в звании, в связи с отставленным отчетом на гос. портале.', ln=True, align='L')
+        if enteredPunishmentType.get() == 'Понизить':
+            pdf.multi_cell(0, 7, '      '+'1. Понизить сотрудника '+ enteredNickname.get() +' в звании.', ln=True, align='L')
         pdf.multi_cell(0, 7, '      '+'1.1. Ваше звание: '+ enteredERank.get() +' инспекции', ln=True, align='L')
         pdf.multi_cell(0, 7, '      '+'2. Контроль за исполнением настоящего приказа оставляю за собой.', ln=True, align='L')
     if orderTypeSelection.get() == orderList[8]:
         pdf.multi_cell(0, 7, '      '+'1. Перевести сотрудника '+ enteredNickname.get() +' из '+ enteredOldDepartament.get() +'.', ln=True, align='L')
-        pdf.multi_cell(0, 7, '      '+'1.1. Ваш новый отдел: '+ enteredDepartament.get(), ln=True, align='L')
-        pdf.multi_cell(0, 7, '      '+'1.2. Ваша новая должность: '+ enteredEPosition.get(), ln=True, align='L')
+        pdf.multi_cell(0, 7, '      '+'1.1. Ваш отдел: '+ enteredDepartament.get(), ln=True, align='L')
+        if enteredDepartament.get() == 'ЦПП':
+            pdf.multi_cell(0, 7, '      '+'1.2. Ваша должность: Курсант ЦПП', ln=True, align='L')
+        if enteredDepartament.get() == '2-я ОР ДПС':
+            pdf.multi_cell(0, 7, '      '+'1.2. Ваша должность: Инспектор 2-й ОР ДПС', ln=True, align='L')
+        if enteredDepartament.get() == '1-я ОСР ДПС':
+            pdf.multi_cell(0, 7, '      '+'1.2. Ваша должность: Инспектор 1-й ОСР ДПС', ln=True, align='L')
+        if enteredERank.get() != 'Не указывать':
+            pdf.multi_cell(0, 7, '      '+'1.3. Ваше звание: '+ enteredERank.get() +' инспекции', ln=True, align='L')
         pdf.multi_cell(0, 7, '      '+'2. Контроль за исполнением настоящего приказа оставляю за собой.', ln=True, align='L')
     if orderTypeSelection.get() == orderList[9]:
         pdf.multi_cell(0, 7, '      '+'1. Снять дисциплинарное взыскание в виде '+ enteredPunishmentType.get() +' сотруднику '+ enteredNickname.get() +'.', ln=True, align='L')
@@ -173,10 +191,25 @@ def PDFgenerator():
                 pdf.multi_cell(0, 7, '      '+'1. Повысить сотрудника '+ enteredNickname.get() +' в звании и должности.', ln=True, align='L')
                 pdf.multi_cell(0, 7, '      '+'1.1. Ваше звание: '+ enteredERank.get() +' инспекции', ln=True, align='L')
                 pdf.multi_cell(0, 7, '      '+'1.2. Ваша должность: '+ enteredEPosition.get() +' с испытательным сроком до '+ enteredDate.get() +'.', ln=True, align='L')
-        else:
+        if enteredPunishmentType.get() == 'Трудоустроить':
+            if vrio.get() == 1:
+                pdf.multi_cell(0, 7, '      '+'1. Принять человека '+ enteredNickname.get() +' в организацию.', ln=True, align='L')
+                pdf.multi_cell(0, 7, '      '+'1.1. Ваше звание: '+ enteredERank.get() +' инспекции', ln=True, align='L')
+                pdf.multi_cell(0, 7, '      '+'1.2. Ваша должность: ВрИО '+ enteredEPosition.get() +' сроком до '+ enteredDate.get() +'.', ln=True, align='L')
+            else:
+                pdf.multi_cell(0, 7, '      '+'1. Принять человека '+ enteredNickname.get() +' в организацию.', ln=True, align='L')
+                pdf.multi_cell(0, 7, '      '+'1.1. Ваше звание: '+ enteredERank.get() +' инспекции', ln=True, align='L')
+                pdf.multi_cell(0, 7, '      '+'1.2. Ваша должность: '+ enteredEPosition.get() +' с испытательным сроком до '+ enteredDate.get() +'.', ln=True, align='L')
+        if enteredPunishmentType.get() == 'Снять':
             pdf.multi_cell(0, 7, '      '+'1. Понизить сотрудника '+ enteredNickname.get() +' в звании и должности.', ln=True, align='L')
             pdf.multi_cell(0, 7, '      '+'1.1. Ваше звание: '+ enteredERank.get() +' инспекции', ln=True, align='L')
             pdf.multi_cell(0, 7, '      '+'1.2. Ваша должность: '+ enteredEPosition.get(), ln=True, align='L')
+            if enteredEPosition.get() == 'Курсант ЦПП':
+                pdf.multi_cell(0, 7, '      '+'1.3. Ваш отдел: ЦПП.', ln=True, align='L')
+            if enteredEPosition.get() == 'Инспектор 2-й ОР ДПС':
+                pdf.multi_cell(0, 7, '      '+'1.3. Ваш отдел: 2-я ОР ДПС.', ln=True, align='L')
+            if enteredEPosition.get() == 'Инспектор 1-й ОСР ДПС':
+                pdf.multi_cell(0, 7, '      '+'1.3. Ваш отдел: 1-я ОСР ДПС.', ln=True, align='L')
         pdf.multi_cell(0, 7, '      '+'2. Контроль за исполнением настоящего приказа оставляю за собой.', ln=True, align='L')
     if orderTypeSelection.get() == orderList[12]:
         pdf.multi_cell(0, 7, '      '+'1. Наградить сотрудника '+ enteredNickname.get() +' медалью '+ selectedMedal.get() +', за активную деятельность в сфере развития ГУОБДД и МВД в целом.', ln=True, align='L')
@@ -204,37 +237,43 @@ def PDFgenerator():
 
     msg = alert(text='Приказ сохранён как "output.pdf" и "page_1.png".', title="Операция выполнена", button='OK')
 
+    try:
+        number = int(selectedNumber.get())
+        selectedNumber.delete(0, END)
+        selectedNumber.insert(0, str(int(number + 1)))
+    except:
+        pass
+
 def continuePressed():
-    global orderList, orderNumber, orderTypeSelection, enteredOrderReason, enteredOrderFreetext, enteredPunishmentReason, enteredNickname, enteredOldNickname, enteredPreds, enteredVygs, enteredERank, enteredEPosition, enteredUvalReason, blacklistSelection, enteredBlack1, enteredBlack2, enteredDepartament, enteredOldDepartament, enteredPunishmentType, enteredDate, selectedMedal, premia, formationType, mandatory, vrio
+    global orderList, orderTypeSelection, enteredOrderReason, enteredOrderFreetext, enteredPunishmentReason, enteredNickname, enteredOldNickname, enteredPreds, enteredVygs, enteredERank, enteredEPosition, enteredUvalReason, blacklistSelection, enteredBlack1, enteredBlack2, enteredDepartament, enteredOldDepartament, enteredPunishmentType, enteredDate, selectedMedal, premia, formationType, mandatory, vrio
     if rememberMeCheckbox.get() == 1:
         with open('userData.txt', 'w', encoding='utf-8') as file:
             file.seek(0)
             file.write(enteredPosition.get()+'\n'+enteredRank.get()+'\n'+enteredNameSurname.get())
 
-    orderNumber = selectedNumber.get()
     enteredPosition.pack_forget()
     enteredRank.pack_forget()
     enteredNameSurname.pack_forget()
-    selectedNumber.pack_forget()
     orderTypeSelection.pack_forget()
     continueButton.pack_forget()
     rememberMeCheckbox.pack_forget()
     typeSelectionLabel.pack_forget()
     if orderTypeSelection.get() == orderList[0]:
-        def sixSpaces():
-            enteredOrderFreetext.insert(text='      ')
-        root.geometry('500x525')
+        def fixTab(event):
+            enteredOrderFreetext.insert(CURRENT, text='      ')
+            return 'break'
+        root.geometry('500x575')
         enteredOrderReason = customtkinter.CTkEntry(master=frame, placeholder_text='О чём приказ?')
         enteredOrderReason.pack(pady=12, padx=10)
         textboxLabel = customtkinter.CTkLabel(master=frame, text='Введите текст приказа ниже:', font=('Roboto', 18))
         textboxLabel.pack(pady=12, padx=10)
         enteredOrderFreetext = customtkinter.CTkTextbox(master=frame, width=325, height=125)
         enteredOrderFreetext.pack(pady=12, padx=10)
-        enteredOrderFreetext.bind("Tab", command=sixSpaces)
-        absatzLabel = customtkinter.CTkLabel(master=frame, text='Tab - отступ первой строки абзаца', font=('Roboto', 12))
+        enteredOrderFreetext.bind("<Tab>", command=fixTab)
+        absatzLabel = customtkinter.CTkLabel(master=frame, text='Tab - табуляция / отступ первой строки абзаца', font=('Roboto', 12))
         absatzLabel.pack(pady=12, padx=10)
     if orderTypeSelection.get() == orderList[1] or orderTypeSelection.get() == orderList[2]:
-        root.geometry('500x525')
+        root.geometry('500x575')
         enteredPunishmentReason = customtkinter.CTkEntry(master=frame, placeholder_text='Нарушенные пункты')
         enteredPunishmentReason.pack(pady=12, padx=10)
         enteredNickname = customtkinter.CTkEntry(master=frame, placeholder_text='Ник нарушителя')
@@ -248,18 +287,18 @@ def continuePressed():
         enteredVygs = customtkinter.CTkOptionMenu(master=frame, values=['0', '1', '2', '3'])
         enteredVygs.pack(pady=12, padx=10)
     if orderTypeSelection.get() == orderList[3]:
-        root.geometry('500x325')
+        root.geometry('500x375')
         enteredPunishmentReason = customtkinter.CTkEntry(master=frame, placeholder_text='Нарушенные пункты')
         enteredPunishmentReason.pack(pady=12, padx=10)
         enteredNickname = customtkinter.CTkEntry(master=frame, placeholder_text='Ник нарушителя')
         enteredNickname.pack(pady=12, padx=10)
     if orderTypeSelection.get() == orderList[4]:
-        root.geometry('500x925')
+        root.geometry('500x975')
         enteredNickname = customtkinter.CTkEntry(master=frame, placeholder_text='Ник сотрудника')
         enteredNickname.pack(pady=12, padx=10)
         epositionLabel = customtkinter.CTkLabel(master=frame, text='Должность сотрудника:', font=('Roboto', 12))
         epositionLabel.pack(pady=12, padx=10)
-        enteredEPosition = customtkinter.CTkOptionMenu(master=frame, values=['Курсанта ЦПП', 'Инспектора 2-ой ОР ДПС', 'Инспектора 1-ой ОСР ДПС', 'Инструктора ЦПП', 'Начальника ЦПП', 'Заместителя Командира 2-ой ОР ДПС', 'Командира 2-ой ОР ДПС', 'Заместителя Командира 1-ой ОСР ДПС', 'Командира 1-ой ОСР ДПС', 'Заместителя Начальника ГУОБДД'])
+        enteredEPosition = customtkinter.CTkOptionMenu(master=frame, values=['Курсанта ЦПП', 'Инспектора 2-й ОР ДПС', 'Инспектора 1-й ОСР ДПС', 'Инструктора ЦПП', 'Начальника ЦПП', 'Заместителя Командира 2-й ОР ДПС', 'Командира 2-й ОР ДПС', 'Заместителя Командира 1-й ОСР ДПС', 'Командира 1-й ОСР ДПС', 'Заместителя Начальника ГУОБДД'])
         enteredEPosition.pack(pady=12, padx=10)
         erankLabel = customtkinter.CTkLabel(master=frame, text='Звание сотрудника:', font=('Roboto', 12))
         erankLabel.pack(pady=12, padx=10)
@@ -284,53 +323,53 @@ def continuePressed():
         enteredVygs = customtkinter.CTkOptionMenu(master=frame, values=['0', '1', '2', '3'])
         enteredVygs.pack(pady=12, padx=10)
     if orderTypeSelection.get() == orderList[5]:
-        root.geometry('500x325')
+        root.geometry('500x375')
         enteredOldNickname = customtkinter.CTkEntry(master=frame, placeholder_text='Старый ник сотрудника')
         enteredOldNickname.pack(pady=12, padx=10)
         enteredNickname = customtkinter.CTkEntry(master=frame, placeholder_text='Новый ник сотрудника')
         enteredNickname.pack(pady=12, padx=10)
     if orderTypeSelection.get() == orderList[6]:
-        root.geometry('500x575')
+        root.geometry('500x525')
         enteredNickname = customtkinter.CTkEntry(master=frame, placeholder_text='Ник сотрудника')
         enteredNickname.pack(pady=12, padx=10)
         departamentLabel = customtkinter.CTkLabel(master=frame, text='Отдел сотрудника:', font=('Roboto', 12))
         departamentLabel.pack(pady=12, padx=10)
         enteredDepartament = customtkinter.CTkOptionMenu(master=frame, values=['ЦПП', '2-я ОР ДПС', '1-я ОСР ДПС'])
         enteredDepartament.pack(pady=12, padx=10)
-        epositionLabel = customtkinter.CTkLabel(master=frame, text='Должность сотрудника:', font=('Roboto', 12))
-        epositionLabel.pack(pady=12, padx=10)
-        enteredEPosition = customtkinter.CTkOptionMenu(master=frame, values=['Курсант ЦПП', 'Инспектор 2-ой ОР ДПС', 'Инспектор 1-ой ОСР ДПС', 'Инструктор ЦПП', 'Начальник ЦПП', 'Заместитель Командира 2-ой ОР ДПС', 'Командир 2-ой ОР ДПС', 'Заместитель Командира 1-ой ОСР ДПС', 'Командир 1-ой ОСР ДПС', 'Заместитель Начальника ГУОБДД'])
-        enteredEPosition.pack(pady=12, padx=10)
         erankLabel = customtkinter.CTkLabel(master=frame, text='Звание сотрудника:', font=('Roboto', 12))
         erankLabel.pack(pady=12, padx=10)
-        enteredERank = customtkinter.CTkOptionMenu(master=frame, values=['рядовой', 'сержант', 'старшина', 'прапорщик', 'лейтенант', 'старший лейтенант', 'капитан', 'майор', 'подполковник', 'полковник'])
+        enteredERank = customtkinter.CTkOptionMenu(master=frame, values=['рядовой', 'старшина', 'лейтенант', 'старший лейтенант', 'капитан'])
         enteredERank.pack(pady=12, padx=10)
     if orderTypeSelection.get() == orderList[7]:
-        root.geometry('500x375')
+        root.geometry('500x525')
+        punishmentTypeLabel = customtkinter.CTkLabel(master=frame, text='Повысить или понизить сотрудника:', font=('Roboto', 12))
+        punishmentTypeLabel.pack(pady=12, padx=10)
+        enteredPunishmentType = customtkinter.CTkOptionMenu(master=frame, values=['Повысить', 'Понизить'])
+        enteredPunishmentType.pack(pady=12, padx=10)
         enteredNickname = customtkinter.CTkEntry(master=frame, placeholder_text='Ник сотрудника')
         enteredNickname.pack(pady=12, padx=10)
         erankLabel = customtkinter.CTkLabel(master=frame, text='Новое звание сотрудника:', font=('Roboto', 12))
         erankLabel.pack(pady=12, padx=10)
-        enteredERank = customtkinter.CTkOptionMenu(master=frame, values=['сержант', 'старшина', 'прапорщик', 'лейтенант', 'старший лейтенант', 'капитан', 'майор', 'подполковник', 'полковник'])
+        enteredERank = customtkinter.CTkOptionMenu(master=frame, values=['рядовой', 'сержант', 'старшина', 'прапорщик', 'лейтенант', 'старший лейтенант', 'капитан'])
         enteredERank.pack(pady=12, padx=10)
     if orderTypeSelection.get() == orderList[8]:
-        root.geometry('500x575')
+        root.geometry('500x625')
         enteredNickname = customtkinter.CTkEntry(master=frame, placeholder_text='Ник сотрудника')
         enteredNickname.pack(pady=12, padx=10)
         oldDepartamentLabel = customtkinter.CTkLabel(master=frame, text='Старый отдел сотрудника:', font=('Roboto', 12))
         oldDepartamentLabel.pack(pady=12, padx=10)
-        enteredOldDepartament = customtkinter.CTkOptionMenu(master=frame, values=['ЦПП', '2-я ОР ДПС', '1-я ОСР ДПС'])
+        enteredOldDepartament = customtkinter.CTkOptionMenu(master=frame, values=['ЦПП', '2-й ОР ДПС', '1-й ОСР ДПС'])
         enteredOldDepartament.pack(pady=12, padx=10)
         departamentLabel = customtkinter.CTkLabel(master=frame, text='Новый отдел сотрудника:', font=('Roboto', 12))
         departamentLabel.pack(pady=12, padx=10)
         enteredDepartament = customtkinter.CTkOptionMenu(master=frame, values=['ЦПП', '2-я ОР ДПС', '1-я ОСР ДПС'])
         enteredDepartament.pack(pady=12, padx=10)
-        epositionLabel = customtkinter.CTkLabel(master=frame, text='Новая должность сотрудника:', font=('Roboto', 12))
-        epositionLabel.pack(pady=12, padx=10)
-        enteredEPosition = customtkinter.CTkOptionMenu(master=frame, values=['Курсант ЦПП', 'Инспектор 2-ой ОР ДПС', 'Инспектор 1-ой ОСР ДПС'])
-        enteredEPosition.pack(pady=12, padx=10)
+        erankLabel = customtkinter.CTkLabel(master=frame, text='Новое звание сотрудника:', font=('Roboto', 12))
+        erankLabel.pack(pady=12, padx=10)
+        enteredERank = customtkinter.CTkOptionMenu(master=frame, values=['Не указывать', 'рядовой', 'сержант', 'старшина', 'прапорщик', 'лейтенант', 'старший лейтенант', 'капитан'])
+        enteredERank.pack(pady=12, padx=10)
     if orderTypeSelection.get() == orderList[9]:
-        root.geometry('500x575')
+        root.geometry('500x625')
         enteredNickname = customtkinter.CTkEntry(master=frame, placeholder_text='Ник сотрудника')
         enteredNickname.pack(pady=12, padx=10)
         punishmentTypeLabel = customtkinter.CTkLabel(master=frame, text='Снять взыскание в виде:', font=('Roboto', 12))
@@ -346,7 +385,7 @@ def continuePressed():
         enteredVygs = customtkinter.CTkOptionMenu(master=frame, values=['0', '1', '2', '3'])
         enteredVygs.pack(pady=12, padx=10)
     if orderTypeSelection.get() == orderList[10]:
-        root.geometry('500x475')
+        root.geometry('500x525')
         def pick_date(event):
             global cal, date_window, enteredHour, enteredMinute
             date_window = Toplevel(background='#212221')
@@ -381,7 +420,7 @@ def continuePressed():
         mandatory = customtkinter.CTkCheckBox(master=frame, text='Обязательная явка')
         mandatory.pack(pady=12, padx=10)
     if orderTypeSelection.get() == orderList[11]:
-        root.geometry('500x675')
+        root.geometry('500x725')
         def pick_date(event):
             global cal, date_window, enteredHour, enteredMinute
             date_window = Toplevel(background='#212221')
@@ -396,9 +435,9 @@ def continuePressed():
         def grab_date():
             enteredDate.insert(0, cal.get_date())
             date_window.destroy()
-        punishmentTypeLabel = customtkinter.CTkLabel(master=frame, text='Назначить или снять сотрудника:', font=('Roboto', 12))
+        punishmentTypeLabel = customtkinter.CTkLabel(master=frame, text='Назначить, трудоустроить или снять сотрудника:', font=('Roboto', 12))
         punishmentTypeLabel.pack(pady=12, padx=10)
-        enteredPunishmentType = customtkinter.CTkOptionMenu(master=frame, values=['Назначить', 'Снять'])
+        enteredPunishmentType = customtkinter.CTkOptionMenu(master=frame, values=['Назначить', 'Трудоустроить', 'Снять'])
         enteredPunishmentType.pack(pady=12, padx=10)
         enteredNickname = customtkinter.CTkEntry(master=frame, placeholder_text='Ник сотрудника')
         enteredNickname.pack(pady=12, padx=10)
@@ -408,7 +447,7 @@ def continuePressed():
         enteredERank.pack(pady=12, padx=10)
         epositionLabel = customtkinter.CTkLabel(master=frame, text='Новая должность сотрудника:', font=('Roboto', 12))
         epositionLabel.pack(pady=12, padx=10)
-        enteredEPosition = customtkinter.CTkOptionMenu(master=frame, values=['Курсант ЦПП', 'Инспектор 2-ой ОР ДПС', 'Инспектор 1-ой ОСР ДПС', 'Инструктор ЦПП', 'Начальник ЦПП', 'Заместитель Командира 2-ой ОР ДПС', 'Командир 2-ой ОР ДПС', 'Заместитель Командира 1-ой ОСР ДПС', 'Командир 1-ой ОСР ДПС', 'Заместитель Начальника ГУОБДД'])
+        enteredEPosition = customtkinter.CTkOptionMenu(master=frame, values=['Курсант ЦПП', 'Инспектор 2-й ОР ДПС', 'Инспектор 1-й ОСР ДПС', 'Инструктор ЦПП', 'Начальник ЦПП', 'Заместитель Командира 2-й ОР ДПС', 'Командир 2-й ОР ДПС', 'Заместитель Командира 1-й ОСР ДПС', 'Командир 1-й ОСР ДПС', 'Заместитель Начальника ГУОБДД'])
         enteredEPosition.pack(pady=12, padx=10)
         vrio = customtkinter.CTkCheckBox(master=frame, text='Временно Исполняющий Обязанности')
         vrio.pack(pady=12, padx=10)
@@ -418,7 +457,7 @@ def continuePressed():
         enteredDate.bind('<2>', pick_date)
         enteredDate.bind('<3>', pick_date)
     if orderTypeSelection.get() == orderList[12]:
-        root.geometry('500x375')
+        root.geometry('500x425')
         enteredNickname = customtkinter.CTkEntry(master=frame, placeholder_text='Ник сотрудника')
         enteredNickname.pack(pady=12, padx=10)
         medalLabel = customtkinter.CTkLabel(master=frame, text='Выберите медаль:', font=('Roboto', 12))
@@ -478,11 +517,16 @@ def main():
 
     continueButton = customtkinter.CTkButton(master=frame, text='Продолжить', command=continuePressed)
     continueButton.pack(pady=12, padx=10)
-
-    with open('userData.txt', 'r', encoding='utf-8') as file:
-                    enteredPosition.insert(0, file.readline())
-                    enteredRank.insert(0, file.readline())
-                    enteredNameSurname.insert(0, file.readline())
+    
+    try:
+        file = open('userData.txt', 'r', encoding='utf-8')
+    except:
+        pass
+    else:
+        enteredPosition.insert(0, file.readline())
+        enteredRank.insert(0, file.readline())
+        enteredNameSurname.insert(0, file.readline())
+        file.close()
 
     root.mainloop()
 
