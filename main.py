@@ -108,15 +108,21 @@ def PDFgenerator():
     if orderTypeSelection.get() == orderList[0]:
         pdf.multi_cell(0, 7, enteredOrderFreetext.get(0.1, customtkinter.END), ln=True, align='L')
     if orderTypeSelection.get() == orderList[1]:
-        pdf.multi_cell(0, 7, '      '+'1. Выдать дисциплинарное взыскание в виде предупреждения сотруднику ' + enteredNickname.get() + '.', ln=True, align='L')
+        if enteredPunishmentAmount.get() == 'одного':
+            pdf.multi_cell(0, 7, '      '+'1. Выдать дисциплинарное взыскание в виде предупреждения сотруднику ' + enteredNickname.get() + '.', ln=True, align='L')
+        else:
+            pdf.multi_cell(0, 7, '      '+'1. Выдать дисциплинарное взыскание в виде '+ enteredPunishmentAmount.get() +' предупреждений сотруднику ' + enteredNickname.get() + '.', ln=True, align='L')
         pdf.multi_cell(0, 7, '      '+'1.1. Состояние взысканий на данный момент ['+ enteredPreds.get() +'/3]['+ enteredVygs.get() +'/3].', ln=True, align='L')
         pdf.multi_cell(0, 7, '      '+'2. Контроль за исполнением настоящего приказа оставляю за собой.', ln=True, align='L')
     if orderTypeSelection.get() == orderList[2]:
-        pdf.multi_cell(0, 7, '        '+'1. Выдать дисциплинарное взыскание в виде выговора сотруднику ' + enteredNickname.get() + '.', ln=True, align='L')
+        if enteredPunishmentAmount.get() == 'одного':
+            pdf.multi_cell(0, 7, '        '+'1. Выдать дисциплинарное взыскание в виде выговора сотруднику ' + enteredNickname.get() + '.', ln=True, align='L')
+        else:
+            pdf.multi_cell(0, 7, '      '+'1. Выдать дисциплинарное взыскание в виде '+ enteredPunishmentAmount.get() +' выговоров сотруднику ' + enteredNickname.get() + '.', ln=True, align='L')
         pdf.multi_cell(0, 7, '      '+'1.1. Состояние взысканий на данный момент ['+ enteredPreds.get() +'/3]['+ enteredVygs.get() +'/3].', ln=True, align='L')
         pdf.multi_cell(0, 7, '      '+'2. Контроль за исполнением настоящего приказа оставляю за собой.', ln=True, align='L')
     if orderTypeSelection.get() == orderList[3]:
-        pdf.multi_cell(0, 7, '      '+'1. Написать объяснительную сотруднику: ' + enteredNickname.get() + ' на имя Марцинкевича Ричарда Юрьевича в Кабинет Начальника ГУОБДД.', ln=True, align='L')
+        pdf.multi_cell(0, 7, '      '+'1. Написать объяснительную сотруднику ' + enteredNickname.get() + ' на имя Марцинкевича Ричарда Юрьевича в Кабинет Начальника ГУОБДД.', ln=True, align='L')
         pdf.multi_cell(0, 7, '      '+'1.1. Приказ должен быть исполнен в течение 24 часов с момента его издания, за его неисполнение полагается дисциплинарное взыскание.', ln=True, align='L')
         pdf.multi_cell(0, 7, '      '+'2. Контроль за исполнением настоящего приказа оставляю за собой.', ln=True, align='L')
     if orderTypeSelection.get() == orderList[4]:
@@ -245,11 +251,14 @@ def PDFgenerator():
         pass
 
 def continuePressed():
-    global orderList, orderTypeSelection, enteredOrderReason, enteredOrderFreetext, enteredPunishmentReason, enteredNickname, enteredOldNickname, enteredPreds, enteredVygs, enteredERank, enteredEPosition, enteredUvalReason, blacklistSelection, enteredBlack1, enteredBlack2, enteredDepartament, enteredOldDepartament, enteredPunishmentType, enteredDate, selectedMedal, premia, formationType, mandatory, vrio
+    global orderList, orderTypeSelection, enteredOrderReason, enteredOrderFreetext, enteredPunishmentReason, enteredNickname, enteredOldNickname, enteredPreds, enteredVygs, enteredERank, enteredEPosition, enteredUvalReason, blacklistSelection, enteredBlack1, enteredBlack2, enteredDepartament, enteredOldDepartament, enteredPunishmentType, enteredDate, selectedMedal, enteredPunishmentAmount, premia, formationType, mandatory, vrio
     if rememberMeCheckbox.get() == 1:
         with open('userData.txt', 'w', encoding='utf-8') as file:
             file.seek(0)
-            file.write(enteredPosition.get()+'\n'+enteredRank.get()+'\n'+enteredNameSurname.get())
+            if '\n' in enteredPosition.get() or '\n' in enteredRank.get() or '\n' in enteredNameSurname.get():
+                file.write(enteredPosition.get()+enteredRank.get()+enteredNameSurname.get())
+            else:
+                file.write(enteredPosition.get()+'\n'+enteredRank.get()+'\n'+enteredNameSurname.get())
 
     enteredPosition.pack_forget()
     enteredRank.pack_forget()
@@ -273,11 +282,15 @@ def continuePressed():
         absatzLabel = customtkinter.CTkLabel(master=frame, text='Tab - табуляция / отступ первой строки абзаца', font=('Roboto', 12))
         absatzLabel.pack(pady=12, padx=10)
     if orderTypeSelection.get() == orderList[1] or orderTypeSelection.get() == orderList[2]:
-        root.geometry('500x575')
+        root.geometry('500x675')
         enteredPunishmentReason = customtkinter.CTkEntry(master=frame, placeholder_text='Нарушенные пункты')
         enteredPunishmentReason.pack(pady=12, padx=10)
         enteredNickname = customtkinter.CTkEntry(master=frame, placeholder_text='Ник нарушителя')
         enteredNickname.pack(pady=12, padx=10)
+        amountLabel = customtkinter.CTkLabel(master=frame, text='Выдать взысканий в количестве:', font=('Roboto', 12))
+        amountLabel.pack(pady=12, padx=10)
+        enteredPunishmentAmount = customtkinter.CTkOptionMenu(master=frame, values=['одного', 'двух', 'трёх'])
+        enteredPunishmentAmount.pack(pady=12, padx=10)
         predsLabel = customtkinter.CTkLabel(master=frame, text='Кол-во предупреждений у сотрудника:', font=('Roboto', 12))
         predsLabel.pack(pady=12, padx=10)
         enteredPreds = customtkinter.CTkOptionMenu(master=frame, values=['0', '1', '2', '3'])
